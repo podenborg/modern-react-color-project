@@ -5,6 +5,7 @@ import Palette from './Palette';
 import seedColors from './seedColors';
 import PaletteList from './PaletteList';
 import { generatePalette } from './colorHelpers';
+import SingleColorPalette from './SingleColorPalette';
 
 // Project GitHub repo
 // https://github.com/Colt/react-colors/tree/master
@@ -21,7 +22,7 @@ class App extends Component {
         <Route 
           exact 
           path='/' 
-          render={() => <PaletteList palettes={seedColors} />} 
+          render={(routeProps) => <PaletteList palettes={seedColors} {...routeProps} />} 
         />
         <Route 
           exact 
@@ -30,6 +31,16 @@ class App extends Component {
             <Palette 
               palette={generatePalette(
                 this.findPalette(routeProps.match.params.id)
+            )}/>
+        }/>
+        <Route 
+          exact 
+          path='/palette/:paletteId/:colorId'
+          render={(routeProps) => 
+            <SingleColorPalette
+              colorId={routeProps.match.params.colorId} 
+              palette={generatePalette(
+                this.findPalette(routeProps.match.params.paletteId)
               )} 
             />
           } 
