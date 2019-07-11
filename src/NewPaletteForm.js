@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { ChromePicker } from 'react-color';
+import { arrayMove } from 'react-sortable-hoc';
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
-import DraggableColorBox from './DraggableColorBox';
+import DraggableColorList from './DraggableColorList';
 
 // import material ui styled components
 import classNames from 'classnames';
@@ -82,9 +83,10 @@ class NewPaletteForm extends Component {
     super(props);
     this.state = {
       open: false,
+      newColorName: '',
+      newPaletteName: '',
       currentColor: 'teal',
-      newName: '',
-      colors: []
+      colors: [],
     };
   }
   componentDidMount() {
@@ -98,6 +100,11 @@ class NewPaletteForm extends Component {
         ({ color }) => color !== this.state.currentColor
       )
     ));
+    ValidatorForm.addValidationRule('isPaletteNameUnique', (value) => (
+      this.props.palettes.every(
+        ({ paletteName }) => paletteName.toLowerCase() !== value.toLowerCase()
+      )
+    ));
   }
   handleDrawerOpen = () => {
     this.setState({ open: true });
@@ -106,14 +113,34 @@ class NewPaletteForm extends Component {
     this.setState({ open: false });
   }
   handleChange = (evt) => {
-    this.setState({ newName: evt.target.value });
+    this.setState({ [evt.target.name]: evt.target.value });
+  }
+  handleSubmit = () => {
+    let newName = this.state.newPaletteName;
+    const newPalette = {
+      paletteName: newName,
+      id: newName.toLowerCase().replace(/ /g, '-'),
+      colors: this.state.colors
+    };
+    this.props.savePalette(newPalette);
+    this.props.history.push('/');
   }
   updateCurrentColor = (newColor) => {
     this.setState({ currentColor: newColor.hex });
   }
   addNewColor = () => {
-    const newColor = { color: this.state.currentColor, name: this.state.newName };
+    const newColor = { color: this.state.currentColor, name: this.state.newColorName };
     this.setState({ colors: [ ...this.state.colors, newColor ] })
+  }
+  removeColor = (colorName) => {
+    this.setState({
+      colors: this.state.colors.filter(color => color.name !== colorName)
+    });
+  }
+  onSortEnd = ({ oldIndex, newIndex }) => {
+    this.setState(({ colors }) => ({
+      colors: arrayMove(colors, oldIndex, newIndex),
+    }));
   }
   render() {
     const { classes, theme } = this.props;
@@ -124,6 +151,7 @@ class NewPaletteForm extends Component {
         <CssBaseline />
         <AppBar
           position='fixed'
+          color='default'
           className={classNames(classes.appBar, {
             [classes.appBarShift]: open
           })}
@@ -140,6 +168,19 @@ class NewPaletteForm extends Component {
             <Typography variant='h6' color='inherit' noWrap>
               Persistent Drawer
             </Typography>
+            <ValidatorForm onSubmit={this.handleSubmit}>
+              <TextValidator 
+                label='Palette Name'
+                name='newPaletteName' 
+                value={this.state.newPaletteName} 
+                onChange={this.handleChange}
+                validators={['required', 'isPaletteNameUnique']}
+                errorMessages={['Enter Palette Name', 'Name already used']} 
+              />
+              <Button type='submit' variant='contained' color='primary'>
+                Save Palette
+              </Button>
+            </ValidatorForm>
           </Toolbar>
         </AppBar>
         <Drawer
@@ -170,9 +211,10 @@ class NewPaletteForm extends Component {
             color={currentColor} 
             onChangeComplete={this.updateCurrentColor} 
           />
-          <ValidatorForm onSubmit={this.addNewColor}>
-            <TextValidator 
-              value={this.state.newName} 
+          <ValidatorForm onSubmit={this.addNewColor} ref='form'>
+            <TextValidator
+              name='newColorName' 
+              value={this.state.newColorName} 
               onChange={this.handleChange}
               validators={['required', 'isColorNameUnique', 'isColorUnique']}
               errorMessages={['This field is required', 'Color name must be unique', 'Color already used!']} 
@@ -191,9 +233,12 @@ class NewPaletteForm extends Component {
           [classes.contentShift]: open
         })}>
           <div className={classes.drawerHeader} />
-          {colors.map(color => (
-            <DraggableColorBox { ...color } />
-          ))}
+          <DraggableColorList 
+            colors={this.state.colors} 
+            removeColor={this.removeColor}
+            axis='xy'
+            onSortEnd={this.onSortEnd} 
+          />
         </main>
       </div>
     )
