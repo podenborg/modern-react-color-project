@@ -1,23 +1,17 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
-import { ChromePicker } from 'react-color';
 import { arrayMove } from 'react-sortable-hoc';
-import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import DraggableColorList from './DraggableColorList';
 
 import PaletteFormNav from './PaletteFormNav';
+import ColorPickerForm from './ColorPickerForm';
 
 // import material ui styled components
 import classNames from 'classnames';
 import Drawer from '@material-ui/core/Drawer';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import Button from '@material-ui/core/Button';
 
@@ -26,24 +20,6 @@ const drawerWidth = 400;
 const styles = theme => ({
   root: {
     display: 'flex',
-  },
-  appBar: {
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-  },
-  appBarShift: {
-    width: `calc(100% - ${drawerWidth}px)`,
-    marginLeft: drawerWidth,
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  menuButton: {
-    marginLeft: 12,
-    marginRight: 20,
   },
   hide: {
     display: 'none',
@@ -61,6 +37,8 @@ const styles = theme => ({
   },
   drawerPaper: {
     width: drawerWidth,
+    display: 'flex',
+    alignItems: 'center'
   },
   content: {
     flexGrow: 1,
@@ -79,6 +57,20 @@ const styles = theme => ({
     }),
     marginLeft: 0,
   },
+  container: {
+    width: '90%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  buttons: {
+    width: '100%'
+  },
+  button: {
+    width: '50%',
+  },
 });
 
 class NewPaletteForm extends Component {
@@ -93,18 +85,6 @@ class NewPaletteForm extends Component {
       currentColor: 'teal',
       colors: this.props.palettes[0].colors,
     };
-  }
-  componentDidMount() {
-    ValidatorForm.addValidationRule('isColorNameUnique', (value) => (
-      this.state.colors.every(
-        ({ name }) => name.toLowerCase() !== value.toLowerCase()
-      )
-    ));
-    ValidatorForm.addValidationRule('isColorUnique', (value) => (
-      this.state.colors.every(
-        ({ color }) => color !== this.state.currentColor
-      )
-    ));
   }
   handleDrawerOpen = () => {
     this.setState({ open: true });
@@ -125,11 +105,7 @@ class NewPaletteForm extends Component {
     this.props.savePalette(newPalette);
     this.props.history.push('/');
   }
-  updateCurrentColor = (newColor) => {
-    this.setState({ currentColor: newColor.hex });
-  }
-  addNewColor = () => {
-    const newColor = { color: this.state.currentColor, name: this.state.newColorName };
+  addNewColor = (newColor) => {
     this.setState({ colors: [ ...this.state.colors, newColor ] })
   }
   removeColor = (colorName) => {
@@ -160,7 +136,6 @@ class NewPaletteForm extends Component {
       <div className={classes.root}>
         <PaletteFormNav 
           open={open} 
-          classes={classes} 
           palettes={palettes} 
           handleSubmit={this.handleSubmit} 
           handleDrawerOpen={this.handleDrawerOpen} 
@@ -180,46 +155,35 @@ class NewPaletteForm extends Component {
             </IconButton>
           </div>
           <Divider />
-          <Typography variant='h4'>Design Your Palette</Typography>
-          <div>
-            <Button 
-              variant='contained' 
-              color='secondary' 
-              onClick={this.clearColors}
-            >
-              Clear Palette
-            </Button>
-            <Button 
-              variant='contained' 
-              color='primary'
-              disabled={paletteIsFull}
-              onClick={this.addRandomColor}
-            >
-              Random Color
-            </Button>
-          </div>
-          <ChromePicker 
-            color={currentColor} 
-            onChangeComplete={this.updateCurrentColor} 
-          />
-          <ValidatorForm onSubmit={this.addNewColor} ref='form'>
-            <TextValidator
-              name='newColorName' 
-              value={this.state.newColorName} 
-              onChange={this.handleChange}
-              validators={['required', 'isColorNameUnique', 'isColorUnique']}
-              errorMessages={['This field is required', 'Color name must be unique', 'Color already used!']} 
+          <div className={classes.container}>
+            <Typography variant='h4' gutterBottom>
+              Design Your Palette
+            </Typography>
+            <div className={classes.buttons}>
+              <Button 
+                variant='contained' 
+                color='secondary'
+                className={classes.button} 
+                onClick={this.clearColors}
+              >
+                Clear Palette
+              </Button>
+              <Button 
+                variant='contained' 
+                color='primary'
+                className={classes.button}
+                disabled={paletteIsFull}
+                onClick={this.addRandomColor}
+              >
+                Random Color
+              </Button>
+            </div>
+            <ColorPickerForm
+              colors={colors} 
+              paletteIsFull={paletteIsFull}
+              addNewColor={this.addNewColor} 
             />
-            <Button 
-              variant='contained'
-              type='submit' 
-              color='primary'
-              disabled={paletteIsFull} 
-              style={{ backgroundColor: paletteIsFull ? 'grey' : currentColor }}
-            >
-              {paletteIsFull ? 'Palette Full' : 'Add Color'}
-            </Button>
-          </ValidatorForm>
+          </div>
         </Drawer>
         <main className={classNames(classes.content, {
           [classes.contentShift]: open
