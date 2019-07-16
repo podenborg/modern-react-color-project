@@ -5,23 +5,7 @@ import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 
 // import material ui styled components
 import Button from '@material-ui/core/Button';
-
-const styles = {
-  picker: {
-    width: '100% !important',
-    marginTop: '2rem',
-  },
-  addColor: {
-    width: '100%',
-    padding: '0.5rem',
-    marginTop: '1rem',
-    fontSize: '1rem'
-  },
-  colorNameInput: {
-    width: '100%',
-    height: '70px',
-  }
-};
+import styles from './styles/ColorPickerFormStyles';
 
 class ColorPickerForm extends Component {
   constructor(props) {
