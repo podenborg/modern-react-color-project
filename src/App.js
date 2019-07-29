@@ -8,7 +8,6 @@ import PaletteList from './PaletteList';
 import NewPaletteForm from './NewPaletteForm';
 import { generatePalette } from './colorHelpers';
 import SingleColorPalette from './SingleColorPalette';
-
 import Page from './Page';
 
 // Project GitHub repo

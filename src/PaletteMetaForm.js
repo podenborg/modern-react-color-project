@@ -45,7 +45,7 @@ class PaletteMetaForm extends Component {
 
   render() {
     const { hideForm } = this.props;
-    const { stage } = this.state;
+    const { stage, newPaletteName } = this.state;
 
     return (
       <>
@@ -71,7 +71,7 @@ class PaletteMetaForm extends Component {
                 margin='normal' 
                 label='Palette Name'
                 name='newPaletteName' 
-                value={this.state.newPaletteName} 
+                value={newPaletteName} 
                 onChange={this.handleChange}
                 validators={['required', 'isPaletteNameUnique']}
                 errorMessages={['Enter Palette Name', 'Name already used']} 
